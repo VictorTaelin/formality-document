@@ -1,0 +1,15 @@
+[package]
+name = "formality-document"
+version = "0.1.0"
+authors = ["maiavictor <srvictormaia@gmail.com>"]
+
+[dependencies]
+formality = "0.1.10"
+
+[lib]
+name = "formality_document"
+path = "src/lib.rs"
+
+[[bin]]
+name = "formality-document"
+path = "src/main.rs"
