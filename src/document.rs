@@ -21,13 +21,14 @@ pub static FORMALITY_TYPES : &[u8] = b"
 ";
 
 // Element type on Rust
+#[derive(Debug)]
 pub enum Element {
     Circle{x : u32, y : u32, r : u32},
     Square{x : u32, y : u32, r : u32}
 }
 
 // Document type on Rust
-type Document = Vec<Element>;
+pub type Document = Vec<Element>;
 
 // Reads a Formality document into a Rust document
 pub fn fdoc_to_doc(_fdoc : &formality::term::Term) -> Document {
