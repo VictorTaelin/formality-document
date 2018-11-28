@@ -1,5 +1,3 @@
-extern crate formality;
-
 // Document type on Formality
 pub static FORMALITY_TYPES : &[u8] = b"
     data Uint : Type
@@ -21,7 +19,8 @@ pub static FORMALITY_TYPES : &[u8] = b"
 ";
 
 // Element type on Rust
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type")]
 pub enum Element {
     Circle{x : u32, y : u32, r : u32},
     Square{x : u32, y : u32, r : u32}
