@@ -5,6 +5,9 @@ authors = ["maiavictor <srvictormaia@gmail.com>"]
 
 [dependencies]
 formality = "0.1.10"
+serde = "^1.0.80"
+serde_derive = "^1.0.80"
+serde_json = "^1.0.33"
 
 [lib]
 name = "formality_document"

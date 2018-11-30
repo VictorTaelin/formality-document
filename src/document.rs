@@ -38,7 +38,8 @@ pub static FORMALITY_HEADER : &[u8] = b"
 ";
 
 // Element type on Rust
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type")]
 pub enum Element {
     Circle{x : u32, y : u32, r : u32},
     Square{x : u32, y : u32, r : u32}
@@ -140,14 +141,21 @@ pub fn term_to_document(term : &Term) -> Option<Document> {
 
 // Converts a Formality string to a Rust document
 pub fn code_to_document(doc_code : &[u8]) -> Option<Document> {
+    // Builds source code with proper headers
     let mut code = FORMALITY_HEADER.to_vec();
     code.extend_from_slice(b"\n");
     code.extend_from_slice(&mut doc_code.clone());
     code.extend_from_slice(b"\nType");
+
+    // Parses it to get a list of definitions
     let parsed = formality::syntax::term_from_ascii(code);
     let (_, defs) = match parsed { Ok(res) => Some(res), Err(_) => None }?;
+
+    // Gets and evaluates `main`
     let term = &defs.get(&b"main".to_vec())?;
     let (_, norm) = formality::compiler::eval(&term, &defs);
+
+    // Converts to a document
     term_to_document(&norm)
 }
 
