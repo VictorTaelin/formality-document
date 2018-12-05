@@ -38,7 +38,7 @@ pub static FORMALITY_HEADER : &[u8] = b"
 ";
 
 // Element type on Rust
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum Element {
     Circle{x : u32, y : u32, r : u32},
