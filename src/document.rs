@@ -120,11 +120,10 @@ pub fn term_to_document(term : &Term) -> Option<Document> {
                     let (fun, args) = get_fun_args(bod);
                     match fun {
                         Var{idx} => {
-                            //println!("Index: {}", idx);
                             match idx {
                                 0 => 0,
-                                1 => add + go(args[0], add * 2),
-                                2 => go(args[0], add * 2),
+                                1 => add + go(args[0], add << 1),
+                                2 => go(args[0], add << 1),
                                 _ => panic!("TODO error")
                             }
                         },
