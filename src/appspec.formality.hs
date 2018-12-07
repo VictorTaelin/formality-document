@@ -42,25 +42,25 @@ let get_app_render(app : App) =>
   | new(LocalState, local_inistate, local_transact, render) => render
 
 let inc(n : Uint) =>
-    case n -> Uint
-    | O(n) => Uint.I(n)
-    | I(n) => Uint.O(fold(n))
-    | Z    => Uint.Z
+  case n -> Uint
+  | O(n) => Uint.I(n)
+  | I(n) => Uint.O(fold(n))
+  | Z    => Uint.Z
 
 let id(n : Uint) =>
-    case n -> Uint
-    | O(n) => Uint.O(fold(n))
-    | I(n) => Uint.I(fold(n))
-    | Z    => Uint.Z
+  case n -> Uint
+  | O(n) => Uint.O(fold(n))
+  | I(n) => Uint.I(fold(n))
+  | Z    => Uint.Z
 
 let uint(n : (P : Type, S : (x : P) -> P, Z : P) -> P) =>
-    let fuse_inc(n : Uint) => Uint{
-        case n -> Uint
-        | O(n) => I(n)
-        | I(n) => O(fuse_inc(n))
-        | Z    => Z
-    }
-    id(n(Uint, fuse_inc, 32(Uint, Uint.O, Uint.Z)))
+  let fuse_inc(n : Uint) => Uint{
+    case n -> Uint
+    | O(n) => I(n)
+    | I(n) => O(fuse_inc(n))
+    | Z    => Z
+  }
+  id(n(Uint, fuse_inc, 32(Uint, Uint.O, Uint.Z)))
 
 -- Demo App:
 -- - Renders a circle on the middle of the screen
