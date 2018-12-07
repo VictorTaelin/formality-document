@@ -38,18 +38,18 @@ fn main() {
     let deserialized : Document = serde_json::from_str(&serialized).unwrap();
     println!("deserialized = {:?}", deserialized);
 
-    // Builds a demo app, gets its init state, applies events, render deocs
-    let app           = get(b"demo_app"); // app specification
-    let local_event   = get(b"demo_local_event"); // an example local event
-    let local_state_t = get(b"DemoLocalState"); // type of the app local state
-    let transact      = apply(get(b"get_app_local_transact"), vec![local_state_t.clone(), app.clone()]);
-    let render        = apply(get(b"get_app_render"), vec![local_state_t.clone(), app.clone()]);
-    let state_0       = apply(get(b"get_app_local_state"), vec![local_state_t.clone(), app.clone()]);
-    let state_1       = apply(transact.clone(), vec![local_event.clone(), state_0.clone()]);
-    let state_2       = apply(transact.clone(), vec![local_event.clone(), state_1.clone()]);
-    let f_doc_0       = apply(render.clone(), vec![state_0.clone()]);
-    let f_doc_1       = apply(render.clone(), vec![state_1.clone()]);
-    let f_doc_2       = apply(render.clone(), vec![state_2.clone()]);
+    // Builds a demo app, gets its fields, computes some states, renders docs
+    let app         = get(b"demo_app");
+    let inistate    = apply(get(b"get_app_local_inistate"), vec![app.clone()]);
+    let transact    = apply(get(b"get_app_local_transact"), vec![app.clone()]);
+    let render      = apply(get(b"get_app_render"), vec![app.clone()]);
+    let local_event = get(b"demo_local_event");
+    let state_0     = inistate.clone();
+    let state_1     = apply(transact.clone(), vec![local_event.clone(), state_0.clone()]);
+    let state_2     = apply(transact.clone(), vec![local_event.clone(), state_1.clone()]);
+    let f_doc_0     = apply(render.clone(), vec![state_0.clone()]);
+    let f_doc_1     = apply(render.clone(), vec![state_1.clone()]);
+    let f_doc_2     = apply(render.clone(), vec![state_2.clone()]);
     println!("state 0 = {}", state_0);
     println!("state 1 = {}", state_1);
     println!("state 2 = {}", state_2);
