@@ -4,38 +4,7 @@ use self::formality::term::*;
 use self::formality::term::Term::*;
 
 // Document type on Formality
-pub static FORMALITY_HEADER : &[u8] = b"
-    data Uint : Type
-    | O : (x : Uint) -> Uint
-    | I : (x : Uint) -> Uint
-    | Z : Uint
-
-    data List<A : Type> : Type
-    | cons : (x : A, xs : List) -> List
-    | nil  : List
-
-    data Element : Type
-    | circle : (x : Uint, y : Uint, r : Uint) -> Element
-    | square : (x : Uint, y : Uint, r : Uint) -> Element
-
-    let Document List<Element>
-
-    let inc(n : Uint) => Uint{
-        case n -> Uint
-        | O(n) => I(n)
-        | I(n) => O(inc(n))
-        | Z    => Z
-    }
-
-    let id(n : Uint) =>
-        case n -> Uint
-        | O(n) => Uint.O(fold(n))
-        | I(n) => Uint.I(fold(n))
-        | Z    => Uint.Z
-
-    let uint(n : (P : Type, S : (x : P) -> P, Z : P) -> P) =>
-        id(n(Uint, inc, 32(Uint, Uint.O, Uint.Z)))
-";
+pub static FORMALITY_HEADER : &[u8] = include_bytes!("appspec.formality.hs");
 
 // Element type on Rust
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -51,7 +20,6 @@ pub type Document = Vec<Element>;
 
 // Interprets a normalized Formality term as a Rust document
 pub fn term_to_document(term : &Term) -> Option<Document> {
-    //println!("Converting fdoc to doc");
     fn build_document(term : &Term) -> Document {
         fn go(term : &Term, doc : &mut Document) {
             //println!("Parsing list of elements: {}", term);
@@ -138,23 +106,42 @@ pub fn term_to_document(term : &Term) -> Option<Document> {
     Some(build_document(term))
 }
 
-// Converts a Formality string to a Rust document
-pub fn code_to_document(doc_code : &[u8]) -> Option<Document> {
+// Builds a Formality Defs using the AppSpec headers plus some extra code (possibly a DApp)
+pub fn build_defs(extra_code : Option<&[u8]>) -> formality::term::Defs { 
     // Builds source code with proper headers
     let mut code = FORMALITY_HEADER.to_vec();
-    code.extend_from_slice(b"\n");
-    code.extend_from_slice(&mut doc_code.clone());
+    if let Some(extra_code) = extra_code {
+        code.extend_from_slice(b"\n");
+        code.extend_from_slice(&mut extra_code.clone());
+    };
     code.extend_from_slice(b"\nType");
 
     // Parses it to get a list of definitions
     let parsed = formality::syntax::term_from_ascii(code);
-    let (_, defs) = match parsed { Ok(res) => Some(res), Err(_) => None }?;
+    let (_, defs) = (match parsed { Ok(res) => Some(res), Err(_) => None }).unwrap();
 
-    // Gets and evaluates `main`
-    let term = &defs.get(&b"main".to_vec())?;
-    let (_, norm) = formality::compiler::eval(&term, &defs);
-
-    // Converts to a document
-    term_to_document(&norm)
+    defs
 }
 
+// Gets a term from a Formality Defs
+pub fn get_term(name : &[u8], defs : &formality::term::Defs) -> formality::term::Term {
+    defs.get(name).unwrap().clone()
+}
+
+// Gets a term from a Formality Defs in normal form
+pub fn get_term_reduced(name : &[u8], defs : &formality::term::Defs) -> formality::term::Term {
+    formality::term::reduced(&get_term(name, defs), defs, true)
+}
+
+// Applies a term to a list of term arguments, returns the normal form (interpreted)
+pub fn apply(fun : Term, args : Vec<Term>, defs : &formality::term::Defs) -> Term {
+    let mut fun = fun.clone();
+    for i in 0..args.len() {
+        let arg = args[i].clone();
+        fun = formality::term::Term::App{
+            fun: Box::new(fun),
+            arg: Box::new(arg)
+        };
+    }
+    reduced(&fun, defs, true)
+}

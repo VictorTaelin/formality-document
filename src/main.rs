@@ -13,7 +13,7 @@ fn main() {
     println!("{:?}", document);
 
     // Prints a Document generated from Formality code
-    let document : Document = code_to_document(b"
+    let defs = &build_defs(Some(b"
         let pretty_circle
             Element.circle(uint(20), uint(20), uint(10))
 
@@ -24,7 +24,10 @@ fn main() {
             Document.cons(pretty_circle,
             Document.cons(pretty_square,
             Document.nil))
-    ").unwrap();
+    "));
+    let get = |name| get_term(name, defs); // convenience to get terms
+    let apply = |fun, args| apply(fun, args, defs); // convenience to apply terms 
+    let document = term_to_document(&get_term_reduced(b"main", defs));
     println!("{:?}", document);
 
     // Tests `serialize` trait from `Document`
@@ -34,4 +37,23 @@ fn main() {
     // Tests `Deserialize` trait from `Document`
     let deserialized : Document = serde_json::from_str(&serialized).unwrap();
     println!("deserialized = {:?}", deserialized);
+
+    // Builds a demo app, gets its init state, applies events, render deocs
+    let app           = get(b"demo_app"); // app specification
+    let local_event   = get(b"demo_local_event"); // an example local event
+    let local_state_t = get(b"DemoLocalState"); // type of the app local state
+    let transact      = apply(get(b"get_app_local_transact"), vec![local_state_t.clone(), app.clone()]);
+    let render        = apply(get(b"get_app_render"), vec![local_state_t.clone(), app.clone()]);
+    let state_0       = apply(get(b"get_app_local_state"), vec![local_state_t.clone(), app.clone()]);
+    let state_1       = apply(transact.clone(), vec![local_event.clone(), state_0.clone()]);
+    let state_2       = apply(transact.clone(), vec![local_event.clone(), state_1.clone()]);
+    let f_doc_0       = apply(render.clone(), vec![state_0.clone()]);
+    let f_doc_1       = apply(render.clone(), vec![state_1.clone()]);
+    let f_doc_2       = apply(render.clone(), vec![state_2.clone()]);
+    println!("state 0 = {}", state_0);
+    println!("state 1 = {}", state_1);
+    println!("state 2 = {}", state_2);
+    println!("f.doc 0 = {:?}", term_to_document(&f_doc_0));
+    println!("f.doc 1 = {:?}", term_to_document(&f_doc_1));
+    println!("f.doc 2 = {:?}", term_to_document(&f_doc_2));
 }
